@@ -143,10 +143,7 @@ class PerfilPage extends StatelessWidget {
                 Expanded(
                   child: _buildStatCard("45", "Análisis realizados", Icons.bar_chart),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard("4.8", "Calificación promedio", Icons.star),
-                ),
+                
               ],
             ),
 
