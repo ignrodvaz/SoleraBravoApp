@@ -244,11 +244,11 @@ class HomePage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.blue.shade50,
+              color: const Color.fromARGB(255, 205, 188, 206),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(children: const [
-              Icon(Icons.lightbulb_outline, color: Colors.blue),
+              Icon(Icons.lightbulb_outline, color: Color.fromARGB(255, 194, 15, 210)),
               SizedBox(width: 12),
               Expanded(
                 child: Text(
