@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+
+import 'editor_page.dart';
 import 'perfil_page.dart';
 import 'mis_analisis_page.dart';
 
@@ -80,7 +84,7 @@ class _MainNavigationState extends State<MainNavigation> {
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  Widget buildAnalysisCard({
+  Widget buildAnalysisCard(BuildContext context, {
     required String title,
     required IconData icon,
     required Color color,
@@ -133,12 +137,14 @@ class HomePage extends StatelessWidget {
                   onPressed: () async {
                     final ImagePicker picker = ImagePicker();
                     try {
-                      final XFile? photo = await picker.pickImage(source: ImageSource.camera);
+                      final XFile? photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 85);
                       if (photo != null) {
-                        debugPrint('Imagen capturada: ${photo.path}');
+                        final file = File(photo.path);
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => EditorPage(imageFile: file)));
                       }
                     } catch (e) {
                       debugPrint('Error al capturar la imagen: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al capturar la imagen')));
                     }
                   },
                   icon: const Icon(Icons.camera_alt_outlined),
@@ -158,12 +164,14 @@ class HomePage extends StatelessWidget {
                   onPressed: () async {
                     final ImagePicker picker = ImagePicker();
                     try {
-                      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                      final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
                       if (image != null) {
-                        debugPrint('Imagen seleccionada: ${image.path}');
+                        final file = File(image.path);
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => EditorPage(imageFile: file)));
                       }
                     } catch (e) {
                       debugPrint('Error al seleccionar imagen: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al seleccionar imagen')));
                     }
                   },
                   icon: const Icon(Icons.image_outlined),
@@ -220,6 +228,7 @@ class HomePage extends StatelessWidget {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(height: 10),
           buildAnalysisCard(
+            context,
             title: "Análisis Básico",
             icon: Icons.bar_chart,
             color: Colors.green,
@@ -227,6 +236,7 @@ class HomePage extends StatelessWidget {
             showButtons: true,
           ),
           buildAnalysisCard(
+            context,
             title: "Triángulo de fuerza",
             icon: Icons.analytics_outlined,
             color: Colors.orange,
@@ -234,6 +244,7 @@ class HomePage extends StatelessWidget {
             showButtons: true,
           ),
           buildAnalysisCard(
+            context,
             title: "3 Paralelas",
             icon: Icons.history_toggle_off,
             color: Colors.blue,
