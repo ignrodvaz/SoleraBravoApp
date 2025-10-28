@@ -85,6 +85,7 @@ class HomePage extends StatelessWidget {
     required IconData icon,
     required Color color,
     required String label,
+    bool showButtons = false,
   }) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -94,31 +95,89 @@ class HomePage extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withOpacity(0.18)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, color: Colors.black87)),
-              ],
-            ),
+          Row(
+            children: [
+              Icon(icon, color: color, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w600, color: Colors.black87)),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  label,
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              )
+            ],
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              label,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-            ),
-          )
+          if (showButtons) ...[
+            const SizedBox(height: 12),
+            Row(children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final ImagePicker picker = ImagePicker();
+                    try {
+                      final XFile? photo = await picker.pickImage(source: ImageSource.camera);
+                      if (photo != null) {
+                        debugPrint('Imagen capturada: ${photo.path}');
+                      }
+                    } catch (e) {
+                      debugPrint('Error al capturar la imagen: $e');
+                    }
+                  },
+                  icon: const Icon(Icons.camera_alt_outlined),
+                  label: const Text("Tomar foto"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff0c1931),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    final ImagePicker picker = ImagePicker();
+                    try {
+                      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                      if (image != null) {
+                        debugPrint('Imagen seleccionada: ${image.path}');
+                      }
+                    } catch (e) {
+                      debugPrint('Error al seleccionar imagen: $e');
+                    }
+                  },
+                  icon: const Icon(Icons.image_outlined),
+                  label: const Text("Desde galería"),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(color: Color(0xffd0d4da)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+            ]),
+          ],
         ],
       ),
     );
@@ -157,51 +216,6 @@ class HomePage extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text("Capturar imagen",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 12),
-          Row(children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  final ImagePicker picker = ImagePicker();
-                  try {
-                    final XFile? photo = await picker.pickImage(source: ImageSource.camera);
-                    if (photo != null) {
-                      // Aquí puedes manejar la imagen capturada
-                      debugPrint('Imagen capturada: ${photo.path}');
-                    }
-                  } catch (e) {
-                    debugPrint('Error al capturar la imagen: $e');
-                  }
-                },
-                icon: const Icon(Icons.camera_alt_outlined),
-                label: const Text("Tomar foto"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff0c1931),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.image_outlined),
-                label: const Text("Desde galería"),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  side: const BorderSide(color: Color(0xffd0d4da)),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-          ]),
-          const SizedBox(height: 24),
           const Text("Tipos de análisis",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(height: 10),
@@ -210,18 +224,21 @@ class HomePage extends StatelessWidget {
             icon: Icons.bar_chart,
             color: Colors.green,
             label: "Gratis",
+            showButtons: true,
           ),
           buildAnalysisCard(
             title: "Triángulo de fuerza",
             icon: Icons.analytics_outlined,
             color: Colors.orange,
             label: "Premium",
+            showButtons: true,
           ),
           buildAnalysisCard(
             title: "3 Paralelas",
             icon: Icons.history_toggle_off,
             color: Colors.blue,
             label: "Premium",
+            showButtons: true,
           ),
           const SizedBox(height: 16),
           Container(
