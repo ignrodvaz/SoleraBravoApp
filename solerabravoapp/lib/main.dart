@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'editor_page.dart';
+import 'pages/image_editor.dart';
 import 'perfil_page.dart';
 import 'mis_analisis_page.dart';
 
@@ -140,7 +140,7 @@ class HomePage extends StatelessWidget {
                       final XFile? photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 85);
                       if (photo != null) {
                         final file = File(photo.path);
-                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => EditorPage(imageFile: file)));
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImageEditorPage(imageFile: file)));
                       }
                     } catch (e) {
                       debugPrint('Error al capturar la imagen: $e');
@@ -167,7 +167,7 @@ class HomePage extends StatelessWidget {
                       final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
                       if (image != null) {
                         final file = File(image.path);
-                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => EditorPage(imageFile: file)));
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImageEditorPage(imageFile: file)));
                       }
                     } catch (e) {
                       debugPrint('Error al seleccionar imagen: $e');
