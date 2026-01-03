@@ -10,7 +10,7 @@ class ImageEditorPage extends StatefulWidget {
 }
 
 class _ImageEditorPageState extends State<ImageEditorPage> {
-  bool _showHipometro = false;
+  String? _currentOverlay; // 'hipometro' or 'triangulo'
 
   // Variables para mover, escalar y rotar
   double _scale = 1.0;
@@ -36,13 +36,13 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
           ),
 
           // 🌙 Capa oscura ligera
-          if (_showHipometro)
+          if (_currentOverlay != null)
             Positioned.fill(
               child: Container(color: Colors.black.withOpacity(0.2)),
             ),
 
-          // 🧩 Hipómetro movible y escalable
-          if (_showHipometro)
+          // 🧩 Overlay movible y escalable
+          if (_currentOverlay != null)
             Positioned.fill(
               child: GestureDetector(
                 onScaleStart: (details) {
@@ -65,7 +65,7 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
                       child: Transform.scale(
                         scale: _scale,
                         child: Image.asset(
-                          'src/hipometro.png', // 👈 ruta actualizada
+                          'src/$_currentOverlay.png', // 👈 ruta actualizada
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) =>
                               const SizedBox.shrink(),
@@ -93,10 +93,14 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
                       Colors.green.shade400,
                       () {
                         setState(() {
-                          _showHipometro = !_showHipometro;
+                          if (_currentOverlay == 'hipometro') {
+                            _currentOverlay = null;
+                          } else {
+                            _currentOverlay = 'hipometro';
+                          }
                         });
                       },
-                      isActive: _showHipometro,
+                      isActive: _currentOverlay == 'hipometro',
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -105,7 +109,16 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
                       context,
                       'Triángulo de fuerza',
                       Colors.orange.shade400,
-                      () => Navigator.of(context).pop('Triángulo de fuerza'),
+                      () {
+                        setState(() {
+                          if (_currentOverlay == 'Triangulo_Fuerza') {
+                            _currentOverlay = null;
+                          } else {
+                            _currentOverlay = 'Triangulo_Fuerza';
+                          }
+                        });
+                      },
+                      isActive: _currentOverlay == 'Triangulo_Fuerza',
                     ),
                   ),
                   const SizedBox(width: 8),
