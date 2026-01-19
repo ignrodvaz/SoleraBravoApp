@@ -127,7 +127,16 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
                       context,
                       '3 Paralelas',
                       Colors.blue.shade400,
-                      () => Navigator.of(context).pop('3 Paralelas'),
+                      () {
+                        setState(() {
+                          if (_currentOverlay == 'Aplomo') {
+                            _currentOverlay = null;
+                          } else {
+                            _currentOverlay = 'Aplomo';
+                          }
+                        });
+                      },
+                      isActive: _currentOverlay == 'Aplomo',
                     ),
                   ),
                 ],
