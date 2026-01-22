@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "376046740870-3d3q71ef1a8bki7mv1eoqr6sp7j9m4j7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.solerabravo.hipometroaureo",
+            "certificate_hash": "88ee1a9b1d40ec99a6c8fe1733ed0df4c360d518"
+          }
+        },
+        {
           "client_id": "376046740870-o1out8c3jrhqi0rc22q6avl7j60e9vp2.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -32,10 +40,10 @@
               "client_type": 3
             },
             {
-              "client_id": "376046740870-lppmr3kudpjfggq3ui1vm1rlt5gjhptl.apps.googleusercontent.com",
+              "client_id": "376046740870-7pegn170sbgqnmrma4hgorg1reap1frd.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.solerabravo.soleraBravo"
+                "bundle_id": "com.example.solerabravoapp"
               }
             }
           ]
