@@ -69,9 +69,9 @@ class _EditorPageState extends State<EditorPage> {
                   ),
                   const SizedBox(height: 16),
                   _buildButton(
-                    '3 Paralelas',
+                    'Aplomo',
                     Colors.blue.shade700,
-                    () => Navigator.of(context).pop('3 Paralelas'),
+                    () => Navigator.of(context).pop('Aplomo'),
                   ),
                 ],
               ),
