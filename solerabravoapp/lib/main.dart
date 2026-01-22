@@ -2,12 +2,21 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 
 import 'pages/image_editor.dart';
 import 'perfil_page.dart';
 import 'mis_analisis_page.dart';
+import 'pages/login_page.dart';
+import 'providers/auth_provider.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const SoleraBravoApp());
 }
 
@@ -16,15 +25,38 @@ class SoleraBravoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Solera Bravo App',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.amber),
-        scaffoldBackgroundColor: const Color(0xfff9fafc),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: MaterialApp(
+        title: 'Solera Bravo App',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.amber),
+          scaffoldBackgroundColor: const Color(0xfff9fafc),
+        ),
+        home: const AuthWrapper(),
       ),
-      home: const MainNavigation(),
+    );
+  }
+}
+
+// Widget que envuelve la autenticación
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, _) {
+        if (authProvider.isAuthenticated) {
+          return const MainNavigation();
+        } else {
+          return const LoginPage();
+        }
+      },
     );
   }
 }
