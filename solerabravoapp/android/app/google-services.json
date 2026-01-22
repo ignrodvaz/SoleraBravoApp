@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "376046740870",
+    "firebase_url": "https://solerabravo-3d35f.firebaseio.com",
+    "project_id": "solerabravo-3d35f",
+    "storage_bucket": "solerabravo-3d35f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:376046740870:android:11b40bd5fe51156718f807",
+        "android_client_info": {
+          "package_name": "com.solerabravo.hipometroaureo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "376046740870-o1out8c3jrhqi0rc22q6avl7j60e9vp2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAb-gIGO6y4lFjiBWnh4EtLUtZv7YOV0Ds"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "376046740870-o1out8c3jrhqi0rc22q6avl7j60e9vp2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "376046740870-lppmr3kudpjfggq3ui1vm1rlt5gjhptl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.solerabravo.soleraBravo"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
