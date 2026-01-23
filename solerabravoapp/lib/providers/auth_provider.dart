@@ -85,6 +85,26 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // Iniciar sesión con Google
+  Future<bool> loginWithGoogle() async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      await _authService.signInWithGoogle();
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = _getErrorMessage(e.toString());
+      notifyListeners();
+      return false;
+    }
+  }
+
   // Cerrar sesión
   Future<void> logout() async {
     try {

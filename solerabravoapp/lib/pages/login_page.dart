@@ -281,6 +281,71 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   ],
                                 ),
                                 const SizedBox(height: 24),
+                                // Divisor
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Divider(
+                                        color: Colors.grey[600],
+                                        thickness: 1,
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      child: Text(
+                                        'o continúa con',
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.grey[500],
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Divider(
+                                        color: Colors.grey[600],
+                                        thickness: 1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                // Botón Google Sign-In
+                                ElevatedButton(
+                                  onPressed: authProvider.isLoading
+                                      ? null
+                                      : () => _handleGoogleSignIn(context),
+                                  style: ElevatedButton.styleFrom(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 14),
+                                    backgroundColor: Colors.white,
+                                    disabledBackgroundColor:
+                                        Colors.white.withOpacity(0.5),
+                                    foregroundColor: Colors.black87,
+                                    elevation: 4,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.g_mobiledata,
+                                        size: 20,
+                                        color: Colors.black87,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Iniciar sesión con Google',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -405,6 +470,34 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         ),
       );
       Navigator.of(context).pop();
+    }
+  }
+
+  void _handleGoogleSignIn(BuildContext context) async {
+    final authProvider = context.read<AuthProvider>();
+    bool success = await authProvider.loginWithGoogle();
+
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '¡Bienvenido!',
+            style: GoogleFonts.poppins(color: Colors.white),
+          ),
+          backgroundColor: Colors.green[700],
+        ),
+      );
+      Navigator.of(context).pop();
+    } else if (mounted && authProvider.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            authProvider.errorMessage ?? 'Error al iniciar sesión con Google',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.red[800],
+        ),
+      );
     }
   }
 

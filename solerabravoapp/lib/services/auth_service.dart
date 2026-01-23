@@ -1,9 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    // Auto-detect Android OAuth client from google-services.json
+    // Scopes help ensure proper GMS initialization
+    scopes: [
+      'email',
+      'profile',
+    ],
+  );
 
   // Stream de cambios de autenticación
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
@@ -61,10 +71,75 @@ class AuthService {
     }
   }
 
+  // Iniciar sesión con Google
+  Future<UserCredential?> signInWithGoogle() async {
+    try {
+      debugPrint('📱 Iniciando Google Sign-In...');
+      
+      // Realizar el flujo de sign-in de Google
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        debugPrint('❌ El usuario canceló el Google Sign-In');
+        return null;
+      }
+
+      debugPrint('✅ Usuario de Google seleccionado: ${googleUser.email}');
+
+      // Obtener el token de autenticación
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      debugPrint('✅ Tokens obtenidos');
+
+      // Crear las credenciales de Firebase
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      debugPrint('✅ Credenciales de Firebase creadas');
+
+      // Iniciar sesión en Firebase con las credenciales de Google
+      final UserCredential userCredential =
+          await _firebaseAuth.signInWithCredential(credential);
+
+      debugPrint('✅ Usuario autenticado en Firebase: ${userCredential.user?.email}');
+
+      // Verificar si el usuario es nuevo
+      final bool isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
+
+      debugPrint('📝 Nuevo usuario: $isNewUser');
+
+      // Si es un usuario nuevo, crear su documento en Firestore
+      if (isNewUser) {
+        debugPrint('📝 Creando documento en Firestore...');
+        await _firestore.collection('users').doc(userCredential.user!.uid).set({
+          'uid': userCredential.user!.uid,
+          'email': userCredential.user!.email,
+          'fullName': userCredential.user!.displayName ?? 'Usuario',
+          'isPremium': false,
+          'profilePicture': userCredential.user!.photoURL,
+          'createdAt': DateTime.now(),
+          'updatedAt': DateTime.now(),
+        });
+        debugPrint('✅ Documento creado en Firestore');
+      } else {
+        debugPrint('📝 Usuario existente, saltando creación de documento');
+      }
+
+      debugPrint('✅ Google Sign-In completado exitosamente');
+      return userCredential;
+    } catch (e) {
+      debugPrint('❌ Error en Google Sign-In: $e');
+      rethrow;
+    }
+  }
+
   // Cerrar sesión
   Future<void> signOut() async {
     try {
       await _firebaseAuth.signOut();
+      await _googleSignIn.signOut();
     } on FirebaseAuthException catch (e) {
       rethrow;
     }
