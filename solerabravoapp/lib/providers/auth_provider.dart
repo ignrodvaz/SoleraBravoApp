@@ -19,13 +19,23 @@ class AuthProvider with ChangeNotifier {
   AuthProvider() {
     // Escuchar cambios de autenticación
     _authService.authStateChanges.listen((User? user) async {
-      _user = user;
-      if (user != null) {
-        _isPremium = await _authService.isPremiumUser(user.uid);
-      } else {
-        _isPremium = false;
+      try {
+        debugPrint('🔄 Cambio de autenticación detectado: ${user?.email}');
+        _user = user;
+        if (user != null) {
+          _isPremium = await _authService.isPremiumUser(user.uid);
+          debugPrint('✅ Usuario cargado: ${user.email}, Premium: $_isPremium');
+        } else {
+          _isPremium = false;
+          debugPrint('❌ Usuario desconectado');
+        }
+        notifyListeners();
+      } catch (e) {
+        debugPrint('⚠️ Error al procesar cambio de autenticación: $e');
+        notifyListeners();
       }
-      notifyListeners();
+    }, onError: (error) {
+      debugPrint('❌ Error en stream de autenticación: $error');
     });
   }
 

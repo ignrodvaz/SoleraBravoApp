@@ -158,10 +158,14 @@ class AuthService {
   // Verificar si el usuario es premium
   Future<bool> isPremiumUser(String uid) async {
     try {
+      debugPrint('📊 Verificando estado premium del usuario: $uid');
       DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
       Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
-      return data?['isPremium'] ?? false;
+      bool isPremium = data?['isPremium'] ?? false;
+      debugPrint('✅ Premium: $isPremium');
+      return isPremium;
     } catch (e) {
+      debugPrint('⚠️ Error al verificar premium: $e');
       return false;
     }
   }

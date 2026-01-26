@@ -7,16 +7,21 @@ import 'package:provider/provider.dart';
 
 import 'pages/image_editor.dart';
 import 'perfil_page.dart';
-import 'mis_analisis_page.dart';
 import 'pages/login_page.dart';
 import 'providers/auth_provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    debugPrint('🔥 Inicializando Firebase...');
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    debugPrint('✅ Firebase inicializado correctamente');
+  } catch (e) {
+    debugPrint('❌ Error al inicializar Firebase: $e');
+  }
   runApp(const SoleraBravoApp());
 }
 
@@ -51,6 +56,31 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
+        debugPrint('🔐 Estado autenticación: ${authProvider.isAuthenticated}');
+        debugPrint('📱 Usuario: ${authProvider.user?.email}');
+        
+        // Si no hay usuario pero está cargando inicial, mostrar splash
+        if (authProvider.isLoading) {
+          return Scaffold(
+            backgroundColor: const Color(0xFF0D1B2A),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[700]!),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Inicializando...',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        
         if (authProvider.isAuthenticated) {
           return const MainNavigation();
         } else {
