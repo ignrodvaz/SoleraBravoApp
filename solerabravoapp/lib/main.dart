@@ -307,7 +307,7 @@ class HomePage extends StatelessWidget {
           ),
           buildAnalysisCard(
             context,
-            title: "3 Paralelas",
+            title: "Lineas de aplomo",
             icon: Icons.history_toggle_off,
             color: Colors.blue,
             label: "Premium",

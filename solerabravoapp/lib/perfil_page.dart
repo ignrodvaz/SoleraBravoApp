@@ -232,7 +232,7 @@ class PerfilPage extends StatelessWidget {
                             Icon(Icons.upgrade_outlined, color: Colors.blue[700]),
                             const SizedBox(width: 8),
                             Text(
-                              "Upgrade a Premium",
+                              "Mejora a Premium",
                               style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -304,10 +304,14 @@ class PerfilPage extends StatelessWidget {
                         onTap: () {},
                       ),
                       ListTile(
-                        leading: const Icon(Icons.logout, color: Colors.redAccent),
+                        leading: const Icon(Icons.logout, color: Colors.red),
                         title: Text(
                           "Cerrar sesión",
-                          style: GoogleFonts.poppins(color: Colors.redAccent, fontSize: 13),
+                          style: GoogleFonts.poppins(
+                            color: Colors.red,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                         onTap: () => _handleLogout(context, authProvider),
                       ),

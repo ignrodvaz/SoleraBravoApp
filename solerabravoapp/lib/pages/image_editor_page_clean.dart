@@ -51,9 +51,9 @@ class ImageEditorPageClean extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Seleccionado: Triángulo de fuerza')));
                   }),
                   const SizedBox(height: 12),
-                  _analysisButton(context, '3 Paralelas', Colors.blue.shade700, () {
-                    Navigator.of(context).pop('3 Paralelas');
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Seleccionado: 3 Paralelas')));
+                  _analysisButton(context, 'Lineas de aplomo', Colors.blue.shade700, () {
+                    Navigator.of(context).pop('Lineas de aplomo');
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Seleccionado: Lineas de aplomo')));
                   }),
                 ],
               ),

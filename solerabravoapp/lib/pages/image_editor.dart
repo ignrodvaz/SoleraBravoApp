@@ -1,5 +1,8 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
+import 'save_analysis_page.dart';
 
 class ImageEditorPage extends StatefulWidget {
   final File imageFile;
@@ -19,6 +22,40 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
   Offset _previousPosition = Offset.zero;
   double _rotation = 0.0;
   double _previousRotation = 0.0;
+
+  void _saveAnalysis() {
+    if (_currentOverlay == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor selecciona un tipo de análisis'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Mapear el overlay al nombre del análisis
+    final analysisTypeMap = {
+      'hipometro': 'Análisis Básico',
+      'Triangulo_Fuerza': 'Triángulo de fuerza',
+      'Aplomo': 'Lineas de aplomo',
+    };
+
+    final analysisType = analysisTypeMap[_currentOverlay] ?? 'Análisis';
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SaveAnalysisPage(
+          imageFile: widget.imageFile,
+          analysisType: analysisType,
+          overlayType: _currentOverlay!,
+          overlayPosition: _position,
+          overlayScale: _scale,
+          overlayRotation: _rotation,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +102,7 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
                       child: Transform.scale(
                         scale: _scale,
                         child: Image.asset(
-                          'src/$_currentOverlay.png', // 👈 ruta actualizada
+                          'src/$_currentOverlay.png',
                           fit: BoxFit.contain,
                           errorBuilder: (context, error, stackTrace) =>
                               const SizedBox.shrink(),
@@ -77,66 +114,88 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
               ),
             ),
 
-          // 📊 Botones de acción (fila en la parte inferior)
+          // 📊 Botones de acción
           Positioned(
             left: 12,
             right: 12,
             bottom: 12,
             child: SafeArea(
               top: false,
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: _analysisButton(
-                      context,
-                      'Análisis Básico',
-                      Colors.green.shade400,
-                      () {
-                        setState(() {
-                          if (_currentOverlay == 'hipometro') {
-                            _currentOverlay = null;
-                          } else {
-                            _currentOverlay = 'hipometro';
-                          }
-                        });
-                      },
-                      isActive: _currentOverlay == 'hipometro',
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _analysisButton(
+                          context,
+                          'Análisis Básico',
+                          Colors.green.shade400,
+                          () {
+                            setState(() {
+                              if (_currentOverlay == 'hipometro') {
+                                _currentOverlay = null;
+                              } else {
+                                _currentOverlay = 'hipometro';
+                              }
+                            });
+                          },
+                          isActive: _currentOverlay == 'hipometro',
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _analysisButton(
+                          context,
+                          'Triángulo de fuerza',
+                          Colors.orange.shade400,
+                          () {
+                            setState(() {
+                              if (_currentOverlay == 'Triangulo_Fuerza') {
+                                _currentOverlay = null;
+                              } else {
+                                _currentOverlay = 'Triangulo_Fuerza';
+                              }
+                            });
+                          },
+                          isActive: _currentOverlay == 'Triangulo_Fuerza',
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _analysisButton(
+                          context,
+                          'Lineas de aplomo',
+                          Colors.blue.shade400,
+                          () {
+                            setState(() {
+                              if (_currentOverlay == 'Aplomo') {
+                                _currentOverlay = null;
+                              } else {
+                                _currentOverlay = 'Aplomo';
+                              }
+                            });
+                          },
+                          isActive: _currentOverlay == 'Aplomo',
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _analysisButton(
-                      context,
-                      'Triángulo de fuerza',
-                      Colors.orange.shade400,
-                      () {
-                        setState(() {
-                          if (_currentOverlay == 'Triangulo_Fuerza') {
-                            _currentOverlay = null;
-                          } else {
-                            _currentOverlay = 'Triangulo_Fuerza';
-                          }
-                        });
-                      },
-                      isActive: _currentOverlay == 'Triangulo_Fuerza',
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _analysisButton(
-                      context,
-                      '3 Paralelas',
-                      Colors.blue.shade400,
-                      () {
-                        setState(() {
-                          if (_currentOverlay == 'Aplomo') {
-                            _currentOverlay = null;
-                          } else {
-                            _currentOverlay = 'Aplomo';
-                          }
-                        });
-                      },
-                      isActive: _currentOverlay == 'Aplomo',
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _saveAnalysis,
+                      icon: const Icon(Icons.check_circle_outline),
+                      label: const Text('Guardar análisis'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 138, 49, 128),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                     ),
                   ),
                 ],
