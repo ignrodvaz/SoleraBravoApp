@@ -55,6 +55,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
 
 # The following section is specific to Flutter packages.
 flutter:
@@ -108,4 +109,4 @@ dependency_overrides:
 flutter_icons:
   android: true
   ios: true
-  image_path: "SoleraBravoApp/solerabravoapp/src/solerabravo.png"
+  image_path: "src/solerabravo.png"
