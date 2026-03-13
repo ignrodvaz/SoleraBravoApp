@@ -326,18 +326,29 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                       borderRadius: BorderRadius.circular(14),
                                     ),
                                   ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.g_mobiledata,
-                                        size: 20,
-                                        color: Colors.black87,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                        'Iniciar sesión con Google',
-                                        style: GoogleFonts.poppins(
+                                  child: authProvider.isLoading
+                                      ? SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation(
+                                                Colors.amber[700]!),
+                                          ),
+                                        )
+                                      : Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(
+                                              Icons.g_mobiledata,
+                                              size: 20,
+                                              color: Colors.black87,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              'Iniciar sesión con Google',
+                                              style: GoogleFonts.poppins(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w600,
                                           color: Colors.black87,
@@ -454,13 +465,17 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     }
 
     final authProvider = context.read<AuthProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     bool success = await authProvider.login(
       email: email,
       password: password,
     );
+    if (!mounted) return;
 
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+    if (success) {
+      messenger.showSnackBar(
         SnackBar(
           content: Text(
             '¡Bienvenido!',
@@ -469,16 +484,21 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           backgroundColor: Colors.green[700],
         ),
       );
-      Navigator.of(context).pop();
+      navigator.pop();
     }
   }
 
   void _handleGoogleSignIn(BuildContext context) async {
     final authProvider = context.read<AuthProvider>();
-    bool success = await authProvider.loginWithGoogle();
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
 
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+    bool success = await authProvider.loginWithGoogle();
+    debugPrint('📊 Resultado login Google: $success');
+    if (!mounted) return;
+
+    if (success) {
+      messenger.showSnackBar(
         SnackBar(
           content: Text(
             '¡Bienvenido!',
@@ -487,9 +507,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           backgroundColor: Colors.green[700],
         ),
       );
-      Navigator.of(context).pop();
-    } else if (mounted && authProvider.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      navigator.pop();
+    } else if (authProvider.errorMessage != null) {
+      messenger.showSnackBar(
         SnackBar(
           content: Text(
             authProvider.errorMessage ?? 'Error al iniciar sesión con Google',
@@ -562,10 +582,13 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                         String email = emailController.text.trim();
                         if (email.isNotEmpty) {
                           final authProvider = context.read<AuthProvider>();
+                          final messenger = ScaffoldMessenger.of(context);
+                          final navigator = Navigator.of(context);
                           bool success = await authProvider.resetPassword(email);
-                          if (success && mounted) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
+                          if (!mounted) return;
+                          if (success) {
+                            navigator.pop();
+                            messenger.showSnackBar(
                               SnackBar(
                                 content: Text(
                                   'Revisa tu correo para recuperar tu contraseña',

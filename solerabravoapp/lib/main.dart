@@ -9,6 +9,7 @@ import 'pages/image_editor.dart';
 import 'perfil_page.dart';
 import 'pages/login_page.dart';
 import 'providers/auth_provider.dart';
+import 'providers/settings_provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -33,6 +34,7 @@ class SoleraBravoApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       child: MaterialApp(
         title: 'Solera Bravo App',
@@ -226,14 +228,31 @@ class HomePage extends StatelessWidget {
                   onPressed: () async {
                     final ImagePicker picker = ImagePicker();
                     try {
-                      final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-                      if (image != null) {
-                        final file = File(image.path);
+                      final List<XFile> images = await picker.pickMultiImage(
+                        imageQuality: 85,
+                        requestFullMetadata: false,
+                      ) ?? [];
+                      
+                      if (images.isNotEmpty) {
+                        final file = File(images.first.path);
                         Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImageEditorPage(imageFile: file)));
                       }
                     } catch (e) {
                       debugPrint('Error al seleccionar imagen: $e');
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al seleccionar imagen')));
+                      try {
+                        final XFile? image = await picker.pickImage(
+                          source: ImageSource.gallery,
+                          imageQuality: 85,
+                          requestFullMetadata: false,
+                        );
+                        if (image != null) {
+                          final file = File(image.path);
+                          Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImageEditorPage(imageFile: file)));
+                        }
+                      } catch (e2) {
+                        debugPrint('Error al seleccionar imagen: $e2');
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al seleccionar imagen')));
+                      }
                     }
                   },
                   icon: const Icon(Icons.image_outlined),

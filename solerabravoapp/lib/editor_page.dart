@@ -43,6 +43,8 @@ class _EditorPageState extends State<EditorPage> {
               ),
             ),
 
+
+
           // Botones
           Align(
             alignment: Alignment.centerRight,

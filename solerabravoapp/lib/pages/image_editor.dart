@@ -14,6 +14,7 @@ class ImageEditorPage extends StatefulWidget {
 
 class _ImageEditorPageState extends State<ImageEditorPage> {
   String? _currentOverlay; // 'hipometro' or 'triangulo'
+  bool _imageFlipped = false;
 
   // Variables para mover, escalar y rotar
   double _scale = 1.0;
@@ -52,6 +53,7 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
           overlayPosition: _position,
           overlayScale: _scale,
           overlayRotation: _rotation,
+          imageFlipped: _imageFlipped,
         ),
       ),
     );
@@ -99,13 +101,19 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
                     offset: _position,
                     child: Transform.rotate(
                       angle: _rotation,
-                      child: Transform.scale(
-                        scale: _scale,
-                        child: Image.asset(
-                          'src/$_currentOverlay.png',
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const SizedBox.shrink(),
+                      child: Transform(
+                        alignment: Alignment.center,
+                        transform: Matrix4.identity()
+                          ..setEntry(3, 2, 0.0001)
+                          ..rotateY(_imageFlipped ? 3.14159 : 0),
+                        child: Transform.scale(
+                          scale: _scale,
+                          child: Image.asset(
+                            'src/$_currentOverlay.png',
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const SizedBox.shrink(),
+                          ),
                         ),
                       ),
                     ),
@@ -213,6 +221,25 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
                 child: IconButton(
                   icon: const Icon(Icons.close, color: Colors.white),
                   onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ),
+          ),
+
+          // 🔄 Botón invertir overlay (arriba a la derecha)
+          Positioned(
+            top: 36 + MediaQuery.of(context).padding.top,
+            right: 8,
+            child: ClipOval(
+              child: Material(
+                color: _imageFlipped ? Colors.blue : Colors.black54,
+                child: IconButton(
+                  icon: const Icon(Icons.restart_alt, color: Colors.white),
+                  onPressed: () {
+                    setState(() {
+                      _imageFlipped = !_imageFlipped;
+                    });
+                  },
                 ),
               ),
             ),

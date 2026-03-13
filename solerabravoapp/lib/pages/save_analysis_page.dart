@@ -14,6 +14,7 @@ class SaveAnalysisPage extends StatefulWidget {
   final Offset overlayPosition;
   final double overlayScale;
   final double overlayRotation;
+  final bool imageFlipped;
 
   const SaveAnalysisPage({
     super.key,
@@ -23,6 +24,7 @@ class SaveAnalysisPage extends StatefulWidget {
     required this.overlayPosition,
     required this.overlayScale,
     required this.overlayRotation,
+    this.imageFlipped = false,
   });
 
   @override
@@ -33,13 +35,11 @@ class _SaveAnalysisPageState extends State<SaveAnalysisPage> {
   final _notesController = TextEditingController();
   bool _isSaving = false;
   late AnalysisService _analysisService;
-  late GlobalKey<State<StatefulWidget>> _previewKey;
 
   @override
   void initState() {
     super.initState();
     _analysisService = AnalysisService();
-    _previewKey = GlobalKey();
   }
 
   @override
@@ -62,10 +62,15 @@ class _SaveAnalysisPageState extends State<SaveAnalysisPage> {
       final overlayAsset = widget.overlayType;
       final assetData = await DefaultAssetBundle.of(context)
           .load('src/$overlayAsset.png');
-      final overlayImage = img.decodeImage(Uint8List.view(assetData.buffer));
+      var overlayImage = img.decodeImage(Uint8List.view(assetData.buffer));
 
       if (overlayImage == null) {
         throw Exception('No se pudo procesar el overlay');
+      }
+
+      // Invertir overlay si es necesario
+      if (widget.imageFlipped) {
+        overlayImage = img.flipHorizontal(overlayImage);
       }
 
       // Crear imagen combinada
@@ -186,17 +191,6 @@ class _SaveAnalysisPageState extends State<SaveAnalysisPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Vista previa de la imagen
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.file(
-                widget.imageFile,
-                height: 250,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
-            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(

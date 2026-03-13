@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
+import 'pages/settings_page.dart';
 
 class PerfilPage extends StatelessWidget {
   const PerfilPage({super.key});
@@ -149,7 +150,14 @@ class PerfilPage extends StatelessWidget {
                       ),
                       IconButton(
                         icon: const Icon(Icons.settings_outlined),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SettingsPage(),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
