@@ -85,6 +85,7 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
             Positioned.fill(
               child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
+                //Añadido cambio para editar la imagenes superpuestas
                 onScaleStart: (details) {
                   _previousScale = _scale;
                   _previousPosition = details.focalPoint - _position;
