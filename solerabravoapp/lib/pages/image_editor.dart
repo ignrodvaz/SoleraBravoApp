@@ -84,6 +84,7 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
           if (_currentOverlay != null)
             Positioned.fill(
               child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
                 onScaleStart: (details) {
                   _previousScale = _scale;
                   _previousPosition = details.focalPoint - _position;
@@ -108,11 +109,17 @@ class _ImageEditorPageState extends State<ImageEditorPage> {
                           ..rotateY(_imageFlipped ? 3.14159 : 0),
                         child: Transform.scale(
                           scale: _scale,
-                          child: Image.asset(
-                            'src/$_currentOverlay.png',
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const SizedBox.shrink(),
+                          child: Container(
+                            color: Colors.transparent,
+                            padding: const EdgeInsets.all(40.0),
+                            child: Image.asset(
+                              'src/$_currentOverlay.png',
+                              width: 120,
+                              height: 120,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const SizedBox.shrink(),
+                            ),
                           ),
                         ),
                       ),
