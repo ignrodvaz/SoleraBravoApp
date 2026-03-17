@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'services/analysis_service.dart';
 import 'models/analysis_model.dart';
 
@@ -107,25 +106,27 @@ class _MisAnalisisPageState extends State<MisAnalisisPage> {
   }
 
   void _deleteAnalysis(String analysisId) {
+    final messenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Eliminar análisis'),
         content: const Text(
           '¿Estás seguro de que deseas eliminar este análisis? Esta acción no se puede deshacer.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancelar'),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               try {
                 await _analysisService.deleteAnalysis(analysisId);
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     const SnackBar(
                       content: Text('Análisis eliminado correctamente'),
                       backgroundColor: Colors.green,
@@ -134,7 +135,7 @@ class _MisAnalisisPageState extends State<MisAnalisisPage> {
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     SnackBar(
                       content: Text('Error al eliminar: $e'),
                       backgroundColor: Colors.red,
