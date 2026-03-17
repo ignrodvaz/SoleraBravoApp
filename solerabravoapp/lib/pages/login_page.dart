@@ -61,7 +61,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   height: 300,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.amber[700]?.withOpacity(0.1),
+                    color: Colors.amber[700]?.withValues(alpha: 0.1),
                   ),
                 ),
               ),
@@ -73,7 +73,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   height: 250,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.amber[700]?.withOpacity(0.05),
+                    color: Colors.amber[700]?.withValues(alpha: 0.05),
                   ),
                 ),
               ),
@@ -194,7 +194,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                     child: Container(
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
-                                        color: Colors.red[900]?.withOpacity(0.3),
+                                        color: Colors.red[900]?.withValues(alpha: 0.3),
                                         border: Border.all(
                                           color: Colors.red[700]!,
                                         ),
@@ -220,7 +220,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                         const EdgeInsets.symmetric(vertical: 16),
                                     backgroundColor: Colors.amber[700],
                                     disabledBackgroundColor:
-                                        Colors.amber[700]?.withOpacity(0.5),
+                                        Colors.amber[700]?.withValues(alpha: 0.5),
                                     foregroundColor: Colors.white,
                                     elevation: 8,
                                     shadowColor: Colors.amber[700],
@@ -319,7 +319,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                         const EdgeInsets.symmetric(vertical: 14),
                                     backgroundColor: Colors.white,
                                     disabledBackgroundColor:
-                                        Colors.white.withOpacity(0.5),
+                                        Colors.white.withValues(alpha: 0.5),
                                     foregroundColor: Colors.black87,
                                     elevation: 4,
                                     shape: RoundedRectangleBorder(
@@ -413,7 +413,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
               )
             : null,
         filled: true,
-        fillColor: Colors.white.withOpacity(0.05),
+        fillColor: Colors.white.withValues(alpha: 0.05),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
@@ -489,30 +489,40 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   }
 
   void _handleGoogleSignIn(BuildContext context) async {
-    final authProvider = context.read<AuthProvider>();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
 
-    bool success = await authProvider.loginWithGoogle();
-    debugPrint('📊 Resultado login Google: $success');
-    if (!mounted) return;
+    try {
+      bool success = await authProvider.loginWithGoogle();
 
-    if (success) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            '¡Bienvenido!',
-            style: GoogleFonts.poppins(color: Colors.white),
+      if (success) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              '¡Bienvenido!',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+            backgroundColor: Colors.green[700],
           ),
-          backgroundColor: Colors.green[700],
-        ),
-      );
-      navigator.pop();
-    } else if (authProvider.errorMessage != null) {
+        );
+        // AuthWrapper will handle navigation automatically
+      } else {
+        final errorMessage = authProvider.errorMessage ?? 'Error al iniciar sesión con Google';
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              errorMessage,
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: Colors.red[800],
+          ),
+        );
+      }
+    } catch (e) {
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            authProvider.errorMessage ?? 'Error al iniciar sesión con Google',
+            'Error inesperado: $e',
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: Colors.red[800],
@@ -522,11 +532,14 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   }
 
   void _showForgotPasswordDialog(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+
     TextEditingController emailController = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
         backgroundColor: const Color(0xFF0D1B2A),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -565,7 +578,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                 children: [
                   Expanded(
                     child: TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Navigator.pop(dialogContext),
                       child: Text(
                         'Cancelar',
                         style: GoogleFonts.poppins(
@@ -580,25 +593,29 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                     child: ElevatedButton(
                       onPressed: () async {
                         String email = emailController.text.trim();
-                        if (email.isNotEmpty) {
-                          final authProvider = context.read<AuthProvider>();
-                          final messenger = ScaffoldMessenger.of(context);
-                          final navigator = Navigator.of(context);
-                          bool success = await authProvider.resetPassword(email);
-                          if (!mounted) return;
-                          if (success) {
-                            navigator.pop();
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Revisa tu correo para recuperar tu contraseña',
-                                  style: GoogleFonts.poppins(color: Colors.white),
-                                ),
-                                backgroundColor: Colors.green[700],
-                              ),
-                            );
-                          }
+                        if (email.isEmpty) {
+                          messenger.showSnackBar(
+                            const SnackBar(content: Text('Ingresa tu correo electrónico')),
+                          );
+                          return;
                         }
+
+                        Navigator.pop(dialogContext);
+
+                        // Limpiar errores previos
+                        authProvider.clearError();
+                        bool success = await authProvider.resetPassword(email);
+                        final errorText = authProvider.errorMessage;
+
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              success
+                                  ? 'Se envió el correo para restablecer contraseña. Revisa tu bandeja de entrada y spam.'
+                                  : (errorText ?? 'No se pudo enviar el correo. Intenta más tarde.'),
+                            ),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber[700],

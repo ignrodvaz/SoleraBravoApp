@@ -303,7 +303,9 @@ class PerfilPage extends StatelessWidget {
                         leading: const Icon(Icons.lock_outline),
                         title: Text("Cambiar contraseña", style: GoogleFonts.poppins(fontSize: 13)),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                        onTap: () {},
+                        onTap: () {
+                          _showChangePasswordDialog(context, authProvider);
+                        },
                       ),
                       ListTile(
                         leading: const Icon(Icons.notifications_none),
@@ -351,7 +353,7 @@ class PerfilPage extends StatelessWidget {
               await authProvider.logout();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red[700],
+              backgroundColor: const Color.fromARGB(255, 98, 140, 204),
             ),
             child: const Text('Cerrar sesión'),
           ),
@@ -359,6 +361,69 @@ class PerfilPage extends StatelessWidget {
       ),
     );
   }
+
+  void _showChangePasswordDialog(BuildContext context, AuthProvider authProvider) {
+    final emailController = TextEditingController(text: authProvider.user?.email ?? '');
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Cambiar contraseña'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Se enviará un correo para restablecer tu contraseña.'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Correo electrónico',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final email = emailController.text.trim();
+              if (email.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Ingresa tu correo electrónico')), 
+                );
+                return;
+              }
+
+              Navigator.pop(dialogContext);
+              final messenger = ScaffoldMessenger.of(context);
+
+              // Limpiar errores previos para asegurar que mostramos el más reciente
+              authProvider.clearError();
+              final success = await authProvider.resetPassword(email);
+              final errorText = authProvider.errorMessage;
+
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(
+                    success
+                        ? 'Se envió el correo para restablecer contraseña. Revisa tu bandeja de entrada y spam.'
+                        : (errorText ?? 'No se pudo enviar el correo. Intenta más tarde.'),
+                  ),
+                ),
+              );
+            },
+            child: const Text('Enviar correo'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStatCard(String value, String label, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(16),
