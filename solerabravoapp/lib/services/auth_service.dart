@@ -9,6 +9,7 @@ class AuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     // Auto-detect Android OAuth client from google-services.json
     // Scopes help ensure proper GMS initialization
+    clientId: kIsWeb ? '376046740870-o1out8c3jrhqi0rc22q6avl7j60e9vp2.apps.googleusercontent.com' : null,
     scopes: [
       'email',
       'profile',
@@ -72,45 +73,46 @@ class AuthService {
   }
 
   // Iniciar sesión con Google
+// Iniciar sesión con Google
   Future<UserCredential?> signInWithGoogle() async {
     try {
       debugPrint('📱 Iniciando Google Sign-In...');
       
-      // Realizar el flujo de sign-in de Google
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      // 1. Declaramos la variable una sola vez arriba
+      UserCredential userCredential;
 
-      if (googleUser == null) {
-        debugPrint('❌ El usuario canceló el Google Sign-In');
-        return null;
+      if (kIsWeb) {
+        // 🌐 EL NUEVO CAMBIO: RUTA EXCLUSIVA PARA WEB
+        // Esto evita el error de la ventana que se cierra sola
+        GoogleAuthProvider authProvider = GoogleAuthProvider();
+        userCredential = await _firebaseAuth.signInWithPopup(authProvider);
+        debugPrint('✅ Usuario autenticado en Web: ${userCredential.user?.email}');
+        
+      } else {
+        // 📱 TU CÓDIGO ORIGINAL: RUTA PARA ANDROID/iOS
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+        if (googleUser == null) {
+          debugPrint('❌ El usuario canceló el Google Sign-In');
+          return null;
+        }
+
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        // 2. Asignamos el valor a la variable (sin volver a declararla con 'final')
+        userCredential = await _firebaseAuth.signInWithCredential(credential);
+        debugPrint('✅ Usuario autenticado en Móvil: ${userCredential.user?.email}');
       }
 
-      debugPrint('✅ Usuario de Google seleccionado: ${googleUser.email}');
-
-      // Obtener el token de autenticación
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-      debugPrint('✅ Tokens obtenidos');
-
-      // Crear las credenciales de Firebase
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      debugPrint('✅ Credenciales de Firebase creadas');
-
-      // Iniciar sesión en Firebase con las credenciales de Google
-      final UserCredential userCredential =
-          await _firebaseAuth.signInWithCredential(credential);
-
-      debugPrint('✅ Usuario autenticado en Firebase: ${userCredential.user?.email}');
-
-      // Verificar si el usuario es nuevo
+      // --- ESTO ES IGUAL: GUARDADO EN FIRESTORE ---
       final bool isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
 
       debugPrint('📝 Nuevo usuario: $isNewUser');
 
-      // Si es un usuario nuevo, crear su documento en Firestore
       if (isNewUser) {
         debugPrint('📝 Creando documento en Firestore...');
         await _firestore.collection('users').doc(userCredential.user!.uid).set({
@@ -129,6 +131,7 @@ class AuthService {
 
       debugPrint('✅ Google Sign-In completado exitosamente');
       return userCredential;
+      
     } catch (e) {
       debugPrint('❌ Error en Google Sign-In: $e');
       rethrow;

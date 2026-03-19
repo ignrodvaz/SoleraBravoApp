@@ -79,8 +79,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
               ),
               // Contenido principal
               SingleChildScrollView(
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height,
                   child: FadeTransition(
                     opacity: _fadeAnimation,
                     child: Column(
@@ -124,8 +122,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                           ),
                         ),
                         // Formulario
-                        Expanded(
-                          child: Padding(
+                        Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -360,12 +357,10 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                               ],
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),
                 ),
-              ),
             ],
           );
         },
