@@ -15,6 +15,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
   late TextEditingController _confirmPasswordController;
+  late TextEditingController _inviteCodeController;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _acceptTerms = false;
@@ -29,6 +30,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
+    _inviteCodeController = TextEditingController();
     
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
@@ -48,6 +50,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _inviteCodeController.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -176,6 +179,14 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
                             });
                           },
                         ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _inviteCodeController, 
+                          hintText: "Código de invitación (Obligatorio)", 
+                          icon: Icons.key_outlined, 
+                          enabled: !authProvider.isLoading
+                        ),
+
                         const SizedBox(height: 24),
                         // Opción Premium - Tarjeta elegante
                         _buildPremiumCard(),
@@ -522,12 +533,14 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
     String email = _emailController.text.trim();
     String password = _passwordController.text;
     String confirmPassword = _confirmPasswordController.text;
+    String inviteCode = _inviteCodeController.text;
 
     // Validaciones
     if (fullName.isEmpty ||
         email.isEmpty ||
         password.isEmpty ||
-        confirmPassword.isEmpty) {
+        confirmPassword.isEmpty ||
+        inviteCode.isEmpty) {
       _showErrorSnackBar(
         context,
         'Por favor completa todos los campos',
@@ -565,6 +578,7 @@ class _RegisterPageState extends State<RegisterPage> with TickerProviderStateMix
       password: password,
       fullName: fullName,
       isPremium: _registerAsPremium,
+      inviteCode: inviteCode,
     );
 
     if (success && mounted) {

@@ -28,8 +28,33 @@ class AuthService {
     required String password,
     required String fullName,
     required bool isPremium,
+    required String inviteCode,
   }) async {
     try {
+      // Verificar el código de invitación
+      debugPrint("Verificando código de invitación: $inviteCode");
+      var codigoDoc = await _firestore.collection('codigos_invitacion')
+      .where('codigo', isEqualTo: inviteCode)
+      .limit(1)
+      .get();
+
+      if (codigoDoc.docs.isEmpty){
+        debugPrint("Código no encontrado");
+        throw Exception("CODIGO_INVALIDO");
+      }
+
+      var datosCodigo = codigoDoc.docs.first.data();
+      String docId = codigoDoc.docs.first.id;
+
+      if(datosCodigo["usado"] == true){
+        debugPrint("Código ya utilizado");
+        throw Exception("CODIGO_USADO");
+      }
+
+      bool codigoDaPremium = datosCodigo['plan'] == 'premium';
+
+      debugPrint("Código válido. Procediendo al registro...");
+
       // Crear usuario en Firebase Auth
       UserCredential userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
@@ -40,15 +65,26 @@ class AuthService {
       await userCredential.user?.updateDisplayName(fullName);
       await userCredential.user?.reload();
 
+      bool finalIsPremium = isPremium || codigoDaPremium;
+
       // Guardar datos del usuario en Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'uid': userCredential.user!.uid,
         'email': email,
         'fullName': fullName,
         'isPremium': isPremium,
+        'codigoUsado': inviteCode,
         'createdAt': DateTime.now(),
         'updatedAt': DateTime.now(),
       });
+
+      await _firestore.collection("codigos_invitacion").doc(docId).update({
+        'usado': true,
+        'usadoPor': userCredential.user!.uid,
+        'fechaUso': DateTime.now(),
+      });
+
+      debugPrint("Registro completado y código quemado");
 
       return userCredential;
     } on FirebaseAuthException catch (e) {

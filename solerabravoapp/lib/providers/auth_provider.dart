@@ -45,6 +45,7 @@ class AuthProvider with ChangeNotifier {
     required String password,
     required String fullName,
     bool isPremium = false,
+    required String inviteCode,
   }) async {
     try {
       _isLoading = true;
@@ -56,6 +57,7 @@ class AuthProvider with ChangeNotifier {
         password: password,
         fullName: fullName,
         isPremium: isPremium,
+        inviteCode: inviteCode,
       );
 
       _isLoading = false;
@@ -63,7 +65,13 @@ class AuthProvider with ChangeNotifier {
       return true;
     } catch (e) {
       _isLoading = false;
-      _errorMessage = _getErrorMessage(e.toString());
+      if (e.toString().contains("CODIGO_INVALIDO")){
+        _errorMessage = "El código de invitación no existe o es incorrecto.";
+      }else if(e.toString().contains("CODIGO_USADO")){
+        _errorMessage = "Este código de invitación ya ha sido utilizado.";
+      }else{
+        _errorMessage = _getErrorMessage(e.toString());
+      }
       notifyListeners();
       return false;
     }
