@@ -12,6 +12,9 @@ import 'providers/auth_provider.dart';
 import 'providers/settings_provider.dart';
 import 'firebase_options.dart';
 
+// 👇 AQUÍ IMPORTAMOS TU NUEVA PÁGINA DEL PDF 👇
+import 'pages/info_hipometro_page.dart'; 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
@@ -50,7 +53,6 @@ class SoleraBravoApp extends StatelessWidget {
   }
 }
 
-// Widget que envuelve la autenticación
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
@@ -58,10 +60,6 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
-        debugPrint('🔐 Estado autenticación: ${authProvider.isAuthenticated}');
-        debugPrint('📱 Usuario: ${authProvider.user?.email}');
-        
-        // Si no hay usuario pero está cargando inicial, mostrar splash
         if (authProvider.isLoading) {
           return Scaffold(
             backgroundColor: const Color(0xFF0D1B2A),
@@ -142,9 +140,6 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 }
 
-//
-// ---------- HOME PAGE (pestaña Inicio) ----------
-//
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -304,57 +299,88 @@ class HomePage extends StatelessWidget {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text("Tipos de análisis",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 10),
-          buildAnalysisCard(
-            context,
-            title: "Análisis Básico",
-            icon: Icons.bar_chart,
-            color: Colors.green,
-            label: "Gratis",
-            showButtons: true,
-          ),
-          buildAnalysisCard(
-            context,
-            title: "Triángulo de fuerza",
-            icon: Icons.analytics_outlined,
-            color: Colors.orange,
-            label: "Premium",
-            showButtons: true,
-          ),
-          buildAnalysisCard(
-            context,
-            title: "Lineas de aplomo",
-            icon: Icons.history_toggle_off,
-            color: Colors.blue,
-            label: "Premium",
-            showButtons: true,
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 205, 188, 206),
-              borderRadius: BorderRadius.circular(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, 
+          children: [
+            const Text("Tipos de análisis",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 10),
+            buildAnalysisCard(
+              context,
+              title: "Análisis Básico",
+              icon: Icons.bar_chart,
+              color: Colors.green,
+              label: "Gratis",
+              showButtons: true,
             ),
-            child: Row(children: const [
-              Icon(Icons.lightbulb_outline, color: Color.fromARGB(255, 194, 15, 210)),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  "Toma la foto de perfil del caballo con buena iluminación y separado de su entorno.",
-                  style: TextStyle(color: Colors.black87, fontSize: 13),
+            buildAnalysisCard(
+              context,
+              title: "Triángulo de fuerza",
+              icon: Icons.analytics_outlined,
+              color: Colors.orange,
+              label: "Premium",
+              showButtons: true,
+            ),
+            buildAnalysisCard(
+              context,
+              title: "Lineas de aplomo",
+              icon: Icons.history_toggle_off,
+              color: Colors.blue,
+              label: "Premium",
+              showButtons: true,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 205, 188, 206),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(children: const [
+                Icon(Icons.lightbulb_outline, color: Color.fromARGB(255, 194, 15, 210)),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    "Toma la foto de perfil del caballo con buena iluminación y separado de su entorno.",
+                    style: TextStyle(color: Colors.black87, fontSize: 13),
+                  ),
+                ),
+              ]),
+            ),
+            
+            // 👇 AQUÍ ESTÁ EL NUEVO BOTÓN DE LA GUÍA 👇
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const InfoHipometroPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.menu_book_rounded, size: 24),
+                label: const Text(
+                  'Guía del Hipómetro Áureo',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff0c1931),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 2,
                 ),
               ),
-            ]),
-          ),
-        ]),
+            ),
+            const SizedBox(height: 16), // Espacio extra al final para que no quede pegado abajo
+          ]
+        ),
       ),
     );
   }
 }
-
-
-

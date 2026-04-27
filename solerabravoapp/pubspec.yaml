@@ -45,6 +45,8 @@ dependencies:
   provider: ^6.1.5+1
   google_sign_in: ^6.2.1
   shared_preferences: ^2.2.0
+  gal: ^2.3.2
+  syncfusion_flutter_pdfviewer: ^27.2.5
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +72,7 @@ flutter:
     - src/hipometro.png
     - src/Triangulo_Fuerza.png
     - src/Aplomo.png
+    - src/hipometro_aureo.pdf
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

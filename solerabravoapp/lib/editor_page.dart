@@ -73,7 +73,7 @@ class _EditorPageState extends State<EditorPage> {
                   _buildButton(
                     'Aplomo',
                     Colors.blue.shade700,
-                    () => Navigator.of(context).pop('Aplomo'),
+                    () => Navigator.of(context).pop('Lineas de aplomo'),
                   ),
                 ],
               ),
