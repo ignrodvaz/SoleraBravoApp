@@ -18,11 +18,9 @@ import 'pages/info_hipometro_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    debugPrint('🔥 Inicializando Firebase...');
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    debugPrint('✅ Firebase inicializado correctamente');
   } catch (e) {
     debugPrint('❌ Error al inicializar Firebase: $e');
   }
@@ -40,7 +38,7 @@ class SoleraBravoApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       child: MaterialApp(
-        title: 'Solera Bravo App',
+        title: 'Hipómetro Áureo', // 👈 Título actualizado
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
@@ -60,6 +58,7 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
+        // Si no hay usuario pero está cargando inicial, mostrar splash
         if (authProvider.isLoading) {
           return Scaffold(
             backgroundColor: const Color(0xFF0D1B2A),

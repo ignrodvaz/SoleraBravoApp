@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.solerabravoapp"
+    namespace = "com.solerabravo.hipometroaureo"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "25.1.8937393"
 

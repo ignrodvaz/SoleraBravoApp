@@ -1,4 +1,4 @@
-package com.example.solerabravoapp
+package com.solerabravo.hipometroaureo
 
 import io.flutter.embedding.android.FlutterActivity
 

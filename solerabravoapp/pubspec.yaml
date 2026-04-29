@@ -110,7 +110,10 @@ dependency_overrides:
 
 # Configuration for flutter_launcher_icons.
 # Place your icon image at `assets/app_icon.png` (recommended size >= 1024x1024)
-flutter_icons:
+# Configuration for flutter_launcher_icons.
+flutter_launcher_icons:
   android: true
   ios: true
   image_path: "src/solerabravo.png"
+  min_sdk_android: 24
+  remove_alpha_ios: true
