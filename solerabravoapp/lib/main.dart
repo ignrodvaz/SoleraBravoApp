@@ -38,7 +38,7 @@ class SoleraBravoApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       child: MaterialApp(
-        title: 'Hipómetro Áureo', // 👈 Título actualizado
+        title: 'Hipómetro Áureo',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
