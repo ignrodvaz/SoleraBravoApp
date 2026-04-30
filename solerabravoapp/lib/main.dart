@@ -11,8 +11,6 @@ import 'pages/login_page.dart';
 import 'providers/auth_provider.dart';
 import 'providers/settings_provider.dart';
 import 'firebase_options.dart';
-
-// 👇 AQUÍ IMPORTAMOS TU NUEVA PÁGINA DEL PDF 👇
 import 'pages/info_hipometro_page.dart'; 
 
 void main() async {
@@ -37,15 +35,40 @@ class SoleraBravoApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
-      child: MaterialApp(
-        title: 'Hipómetro Áureo',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.amber),
-          scaffoldBackgroundColor: const Color(0xfff9fafc),
-        ),
-        home: const AuthWrapper(),
+      // Consumer para escuchar los cambios de idioma y modo oscuro
+      child: Consumer<SettingsProvider>(
+        builder: (context, settings, child) {
+          return MaterialApp(
+            title: 'Hipómetro Áureo',
+            debugShowCheckedModeBanner: false,
+            
+            // Configuración de Idioma y Tema gestionada por SettingsProvider
+            locale: Locale(settings.language),
+            themeMode: settings.darkMode ? ThemeMode.dark : ThemeMode.light,
+            
+            // TEMA CLARO
+            theme: ThemeData(
+              useMaterial3: true,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: Colors.amber,
+                brightness: Brightness.light,
+              ),
+              scaffoldBackgroundColor: const Color(0xfff9fafc),
+            ),
+            
+            // TEMA OSCURO
+            darkTheme: ThemeData(
+              useMaterial3: true,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: Colors.amber,
+                brightness: Brightness.dark,
+              ),
+              scaffoldBackgroundColor: const Color(0xFF121212),
+            ),
+            
+            home: const AuthWrapper(),
+          );
+        }
       ),
     );
   }
@@ -58,7 +81,6 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
-        // Si no hay usuario pero está cargando inicial, mostrar splash
         if (authProvider.isLoading) {
           return Scaffold(
             backgroundColor: const Color(0xFF0D1B2A),
@@ -114,7 +136,7 @@ class _MainNavigationState extends State<MainNavigation> {
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         selectedItemColor: Colors.amber[800],
         unselectedItemColor: Colors.grey,
         items: const [
@@ -142,6 +164,55 @@ class _MainNavigationState extends State<MainNavigation> {
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  Future<void> _takePhoto(BuildContext context) async {
+    final ImagePicker picker = ImagePicker();
+    try {
+      final XFile? photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 85);
+      if (!context.mounted) return;
+      if (photo != null) {
+        final file = File(photo.path);
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImageEditorPage(imageFile: file)));
+      }
+    } catch (e) {
+      debugPrint('Error al capturar la imagen: $e');
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al capturar la imagen')));
+    }
+  }
+
+  Future<void> _pickFromGallery(BuildContext context) async {
+    final ImagePicker picker = ImagePicker();
+    try {
+      final List<XFile> images = await picker.pickMultiImage(
+        imageQuality: 85,
+        requestFullMetadata: false,
+      );
+      if (!context.mounted) return;
+      if (images.isNotEmpty) {
+        final file = File(images.first.path);
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImageEditorPage(imageFile: file)));
+      }
+    } catch (e) {
+      debugPrint('Error al seleccionar imagen: $e');
+      try {
+        final XFile? image = await picker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 85,
+          requestFullMetadata: false,
+        );
+        if (!context.mounted) return;
+        if (image != null) {
+          final file = File(image.path);
+          Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImageEditorPage(imageFile: file)));
+        }
+      } catch (e2) {
+        debugPrint('Error al seleccionar imagen alternativo: $e2');
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al seleccionar imagen')));
+      }
+    }
+  }
+
   Widget buildAnalysisCard(BuildContext context, {
     required String title,
     required IconData icon,
@@ -149,13 +220,15 @@ class HomePage extends StatelessWidget {
     required String label,
     bool showButtons = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.09),
+        color: isDark ? color.withOpacity(0.15) : color.withOpacity(0.09),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.18)),
+        border: Border.all(color: color.withOpacity(isDark ? 0.3 : 0.18)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,13 +238,12 @@ class HomePage extends StatelessWidget {
               Icon(icon, color: color, size: 28),
               const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600, color: Colors.black87)),
-                  ],
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600, 
+                    color: isDark ? Colors.white : Colors.black87
+                  ),
                 ),
               ),
               Container(
@@ -192,70 +264,28 @@ class HomePage extends StatelessWidget {
             Row(children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () async {
-                    final ImagePicker picker = ImagePicker();
-                    try {
-                      final XFile? photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 85);
-                      if (photo != null) {
-                        final file = File(photo.path);
-                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImageEditorPage(imageFile: file)));
-                      }
-                    } catch (e) {
-                      debugPrint('Error al capturar la imagen: $e');
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al capturar la imagen')));
-                    }
-                  },
+                  onPressed: () => _takePhoto(context),
                   icon: const Icon(Icons.camera_alt_outlined),
                   label: const Text("Tomar foto"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff0c1931),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () async {
-                    final ImagePicker picker = ImagePicker();
-                    try {
-                      final List<XFile> images = await picker.pickMultiImage(
-                        imageQuality: 85,
-                        requestFullMetadata: false,
-                      ) ?? [];
-                      
-                      if (images.isNotEmpty) {
-                        final file = File(images.first.path);
-                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImageEditorPage(imageFile: file)));
-                      }
-                    } catch (e) {
-                      debugPrint('Error al seleccionar imagen: $e');
-                      try {
-                        final XFile? image = await picker.pickImage(
-                          source: ImageSource.gallery,
-                          imageQuality: 85,
-                          requestFullMetadata: false,
-                        );
-                        if (image != null) {
-                          final file = File(image.path);
-                          Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImageEditorPage(imageFile: file)));
-                        }
-                      } catch (e2) {
-                        debugPrint('Error al seleccionar imagen: $e2');
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al seleccionar imagen')));
-                      }
-                    }
-                  },
+                  onPressed: () => _pickFromGallery(context),
                   icon: const Icon(Icons.image_outlined),
                   label: const Text("Desde galería"),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     side: const BorderSide(color: Color(0xffd0d4da)),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                    foregroundColor: isDark ? Colors.white : Colors.black87,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
@@ -268,41 +298,44 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
         backgroundColor: const Color(0xff0c1931),
         elevation: 0,
         title: Row(
-          children: [
-            const SizedBox(width: 8),
-            const Icon(Icons.emoji_events, color: Colors.amber),
-            const SizedBox(width: 8),
-            const Text(
-              "Hipometro Áureo",
+          children: const [
+            SizedBox(width: 16),
+            Icon(Icons.emoji_events, color: Colors.amber),
+            SizedBox(width: 8),
+            Text(
+              "Hipómetro Áureo",
               style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
             ),
-            const Spacer(),
-            Container(
+          ],
+        ),
+        actions: [
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(right: 16),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: Colors.amber.shade200,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text("Premium",
-                  style: TextStyle(color: Colors.black, fontSize: 12)),
+              child: const Text("Premium", style: TextStyle(color: Colors.black, fontSize: 12, fontWeight: FontWeight.bold)),
             ),
-            const SizedBox(width: 8),
-          ],
-        ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, 
           children: [
-            const Text("Tipos de análisis",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const Text("Tipos de análisis", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
             buildAnalysisCard(
               context,
@@ -332,22 +365,21 @@ class HomePage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 205, 188, 206),
+                color: isDark ? Colors.purple.withOpacity(0.2) : const Color.fromARGB(255, 205, 188, 206),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Row(children: const [
-                Icon(Icons.lightbulb_outline, color: Color.fromARGB(255, 194, 15, 210)),
-                SizedBox(width: 12),
+              child: Row(children: [
+                const Icon(Icons.lightbulb_outline, color: Color.fromARGB(255, 194, 15, 210)),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     "Toma la foto de perfil del caballo con buena iluminación y separado de su entorno.",
-                    style: TextStyle(color: Colors.black87, fontSize: 13),
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 13),
                   ),
                 ),
               ]),
             ),
             
-            // 👇 AQUÍ ESTÁ EL NUEVO BOTÓN DE LA GUÍA 👇
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -376,7 +408,7 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16), // Espacio extra al final para que no quede pegado abajo
+            const SizedBox(height: 16), 
           ]
         ),
       ),

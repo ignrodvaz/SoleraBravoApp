@@ -9,6 +9,9 @@ class PerfilPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Detectamos si el modo oscuro está activo
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
         final user = authProvider.user;
@@ -17,7 +20,7 @@ class PerfilPage extends StatelessWidget {
         final firstLetter = userName.isNotEmpty ? userName[0].toUpperCase() : 'U';
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF8F9FB),
+          // Quitamos el color fijo para que respete el del Theme (claro u oscuro)
           body: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
             child: Column(
@@ -27,7 +30,7 @@ class PerfilPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                   decoration: const BoxDecoration(
-                    color: Color(0xFF0D1B2A),
+                    color: Color(0xFF0D1B2A), // Este lo dejamos oscuro siempre por diseño
                     borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
                   ),
                   width: double.infinity,
@@ -60,11 +63,11 @@ class PerfilPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
+                        color: isDark ? Colors.black26 : Colors.grey.withOpacity(0.1),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
@@ -81,7 +84,7 @@ class PerfilPage extends StatelessWidget {
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: Colors.black87, // La letra dentro del círculo amarillo siempre negra
                           ),
                         ),
                       ),
@@ -99,6 +102,7 @@ class PerfilPage extends StatelessWidget {
                                     style: GoogleFonts.poppins(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
+                                      color: isDark ? Colors.white : Colors.black87,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -133,7 +137,7 @@ class PerfilPage extends StatelessWidget {
                               userEmail,
                               style: GoogleFonts.poppins(
                                 fontSize: 13,
-                                color: Colors.black54,
+                                color: isDark ? Colors.white70 : Colors.black54,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -142,14 +146,14 @@ class PerfilPage extends StatelessWidget {
                               authProvider.isPremium ? "Usuario Premium" : "Usuario Regular",
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
-                                color: Colors.black45,
+                                color: isDark ? Colors.white54 : Colors.black45,
                               ),
                             ),
                           ],
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.settings_outlined),
+                        icon: Icon(Icons.settings_outlined, color: isDark ? Colors.white : Colors.black87),
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -169,7 +173,7 @@ class PerfilPage extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildStatCard("45", "Análisis realizados", Icons.bar_chart),
+                      child: _buildStatCard("45", "Análisis realizados", Icons.bar_chart, isDark),
                     ),
                   ],
                 ),
@@ -181,7 +185,7 @@ class PerfilPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF7E5),
+                      color: isDark ? const Color(0xFF332A15) : const Color(0xFFFFF7E5),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.amber.shade200),
                     ),
@@ -197,6 +201,7 @@ class PerfilPage extends StatelessWidget {
                               style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black87,
                               ),
                             ),
                           ],
@@ -204,13 +209,17 @@ class PerfilPage extends StatelessWidget {
                         const SizedBox(height: 8),
                         Text(
                           "Disfruta de análisis ilimitados y funciones avanzadas.",
-                          style: GoogleFonts.poppins(fontSize: 13, color: Colors.black54),
+                          style: GoogleFonts.poppins(
+                            fontSize: 13, 
+                            color: isDark ? Colors.white70 : Colors.black54
+                          ),
                         ),
                         const SizedBox(height: 10),
                         ElevatedButton(
                           onPressed: () {},
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.amber[700],
+                            foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -218,7 +227,7 @@ class PerfilPage extends StatelessWidget {
                           ),
                           child: Text(
                             "Gestionar plan",
-                            style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+                            style: GoogleFonts.poppins(fontSize: 13),
                           ),
                         ),
                       ],
@@ -228,7 +237,7 @@ class PerfilPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.blue[50],
+                      color: isDark ? const Color(0xFF152233) : Colors.blue[50],
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.blue.shade200),
                     ),
@@ -237,13 +246,14 @@ class PerfilPage extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.upgrade_outlined, color: Colors.blue[700]),
+                            Icon(Icons.upgrade_outlined, color: Colors.blue[400]),
                             const SizedBox(width: 8),
                             Text(
                               "Mejora a Premium",
                               style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black87,
                               ),
                             ),
                           ],
@@ -251,13 +261,17 @@ class PerfilPage extends StatelessWidget {
                         const SizedBox(height: 8),
                         Text(
                           "Obtén acceso a funciones avanzadas y análisis ilimitados.",
-                          style: GoogleFonts.poppins(fontSize: 13, color: Colors.black54),
+                          style: GoogleFonts.poppins(
+                            fontSize: 13, 
+                            color: isDark ? Colors.white70 : Colors.black54
+                          ),
                         ),
                         const SizedBox(height: 10),
                         ElevatedButton(
                           onPressed: () {},
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue[700],
+                            foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -265,7 +279,7 @@ class PerfilPage extends StatelessWidget {
                           ),
                           child: Text(
                             "Actualizar ahora",
-                            style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+                            style: GoogleFonts.poppins(fontSize: 13),
                           ),
                         ),
                       ],
@@ -278,11 +292,11 @@ class PerfilPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
+                        color: isDark ? Colors.black26 : Colors.grey.withOpacity(0.1),
                         blurRadius: 6,
                         offset: const Offset(0, 4),
                       ),
@@ -296,21 +310,22 @@ class PerfilPage extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w600,
                           fontSize: 15,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                       const Divider(),
                       ListTile(
-                        leading: const Icon(Icons.lock_outline),
-                        title: Text("Cambiar contraseña", style: GoogleFonts.poppins(fontSize: 13)),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        leading: Icon(Icons.lock_outline, color: isDark ? Colors.white70 : Colors.black87),
+                        title: Text("Cambiar contraseña", style: GoogleFonts.poppins(fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
+                        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: isDark ? Colors.white54 : Colors.black54),
                         onTap: () {
                           _showChangePasswordDialog(context, authProvider);
                         },
                       ),
                       ListTile(
-                        leading: const Icon(Icons.notifications_none),
-                        title: Text("Notificaciones", style: GoogleFonts.poppins(fontSize: 13)),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        leading: Icon(Icons.notifications_none, color: isDark ? Colors.white70 : Colors.black87),
+                        title: Text("Notificaciones", style: GoogleFonts.poppins(fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
+                        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: isDark ? Colors.white54 : Colors.black54),
                         onTap: () {},
                       ),
                       ListTile(
@@ -354,6 +369,7 @@ class PerfilPage extends StatelessWidget {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(255, 98, 140, 204),
+              foregroundColor: Colors.white,
             ),
             child: const Text('Cerrar sesión'),
           ),
@@ -402,7 +418,6 @@ class PerfilPage extends StatelessWidget {
               Navigator.pop(dialogContext);
               final messenger = ScaffoldMessenger.of(context);
 
-              // Limpiar errores previos para asegurar que mostramos el más reciente
               authProvider.clearError();
               final success = await authProvider.resetPassword(email);
               final errorText = authProvider.errorMessage;
@@ -424,15 +439,15 @@ class PerfilPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String value, String label, IconData icon) {
+  Widget _buildStatCard(String value, String label, IconData icon, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: isDark ? Colors.black26 : Colors.grey.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -447,12 +462,16 @@ class PerfilPage extends StatelessWidget {
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.bold,
               fontSize: 18,
+              color: isDark ? Colors.white : Colors.black87,
             ),
           ),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(fontSize: 12, color: Colors.black54),
+            style: GoogleFonts.poppins(
+              fontSize: 12, 
+              color: isDark ? Colors.white70 : Colors.black54
+            ),
           ),
         ],
       ),
