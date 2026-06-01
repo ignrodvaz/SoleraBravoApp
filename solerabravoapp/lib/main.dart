@@ -11,8 +11,13 @@ import 'pages/login_page.dart';
 import 'providers/auth_provider.dart';
 import 'providers/settings_provider.dart';
 import 'firebase_options.dart';
-import 'pages/info_hipometro_page.dart'; 
+import 'pages/info_hipometro_page.dart';
 
+// ─── Constantes de color ──────────────────────────────────────────────────────
+const _kNavyColor  = Color(0xff0c1931);
+const _kSplashBg   = Color(0xFF0D1B2A);
+
+// ─── Entry point ─────────────────────────────────────────────────────────────
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
@@ -25,6 +30,7 @@ void main() async {
   runApp(const SoleraBravoApp());
 }
 
+// ─── App root ─────────────────────────────────────────────────────────────────
 class SoleraBravoApp extends StatelessWidget {
   const SoleraBravoApp({super.key});
 
@@ -35,83 +41,77 @@ class SoleraBravoApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
-      // Consumer para escuchar los cambios de idioma y modo oscuro
       child: Consumer<SettingsProvider>(
-        builder: (context, settings, child) {
-          return MaterialApp(
-            title: 'Hipómetro Áureo',
-            debugShowCheckedModeBanner: false,
-            
-            // Configuración de Idioma y Tema gestionada por SettingsProvider
-            locale: Locale(settings.language),
-            themeMode: settings.darkMode ? ThemeMode.dark : ThemeMode.light,
-            
-            // TEMA CLARO
-            theme: ThemeData(
-              useMaterial3: true,
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: Colors.amber,
-                brightness: Brightness.light,
-              ),
-              scaffoldBackgroundColor: const Color(0xfff9fafc),
+        builder: (context, settings, _) => MaterialApp(
+          title: 'Hipómetro Áureo',
+          debugShowCheckedModeBanner: false,
+          locale: Locale(settings.language),
+          themeMode: settings.darkMode ? ThemeMode.dark : ThemeMode.light,
+          theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.amber,
+              brightness: Brightness.light,
             ),
-            
-            // TEMA OSCURO
-            darkTheme: ThemeData(
-              useMaterial3: true,
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: Colors.amber,
-                brightness: Brightness.dark,
-              ),
-              scaffoldBackgroundColor: const Color(0xFF121212),
+            scaffoldBackgroundColor: const Color(0xfff9fafc),
+          ),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.amber,
+              brightness: Brightness.dark,
             ),
-            
-            home: const AuthWrapper(),
-          );
-        }
+            scaffoldBackgroundColor: const Color(0xFF121212),
+          ),
+          home: const AuthWrapper(),
+        ),
       ),
     );
   }
 }
 
+// ─── Auth gate ────────────────────────────────────────────────────────────────
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
-      builder: (context, authProvider, _) {
-        if (authProvider.isLoading) {
-          return Scaffold(
-            backgroundColor: const Color(0xFF0D1B2A),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[700]!),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Inicializando...',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-        
-        if (authProvider.isAuthenticated) {
-          return const MainNavigation();
-        } else {
-          return const LoginPage();
-        }
+      builder: (context, auth, _) {
+        if (auth.isLoading) return const _LoadingScreen();
+        return auth.isAuthenticated ? const MainNavigation() : const LoginPage();
       },
     );
   }
 }
 
+class _LoadingScreen extends StatelessWidget {
+  const _LoadingScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: _kSplashBg,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[700]!),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Inicializando...',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Navegación principal ─────────────────────────────────────────────────────
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
 
@@ -122,7 +122,8 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
+  // static const: no se recrea en cada rebuild
+  static const _pages = <Widget>[
     HomePage(),
     MisAnalisisPage(),
     PerfilPage(),
@@ -161,157 +162,69 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 }
 
+// ─── Pantalla de inicio ───────────────────────────────────────────────────────
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  // Helper compartido: evita duplicar Navigator.push en cada método
+  void _navigateToEditor(BuildContext context, File file) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ImageEditorPage(imageFile: file)),
+    );
+  }
+
   Future<void> _takePhoto(BuildContext context) async {
-    final ImagePicker picker = ImagePicker();
+    final picker = ImagePicker();
     try {
-      final XFile? photo = await picker.pickImage(source: ImageSource.camera, imageQuality: 85);
-      if (!context.mounted) return;
-      if (photo != null) {
-        final file = File(photo.path);
-        Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImageEditorPage(imageFile: file)));
-      }
+      final photo = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85,
+      );
+      if (!context.mounted || photo == null) return;
+      _navigateToEditor(context, File(photo.path));
     } catch (e) {
       debugPrint('Error al capturar la imagen: $e');
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al capturar la imagen')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al capturar la imagen')),
+      );
     }
   }
 
   Future<void> _pickFromGallery(BuildContext context) async {
-    final ImagePicker picker = ImagePicker();
+    final picker = ImagePicker();
     try {
-      final List<XFile> images = await picker.pickMultiImage(
+      // pickImage es suficiente: solo necesitamos una imagen
+      final image = await picker.pickImage(
+        source: ImageSource.gallery,
         imageQuality: 85,
         requestFullMetadata: false,
       );
-      if (!context.mounted) return;
-      if (images.isNotEmpty) {
-        final file = File(images.first.path);
-        Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImageEditorPage(imageFile: file)));
-      }
+      if (!context.mounted || image == null) return;
+      _navigateToEditor(context, File(image.path));
     } catch (e) {
       debugPrint('Error al seleccionar imagen: $e');
-      try {
-        final XFile? image = await picker.pickImage(
-          source: ImageSource.gallery,
-          imageQuality: 85,
-          requestFullMetadata: false,
-        );
-        if (!context.mounted) return;
-        if (image != null) {
-          final file = File(image.path);
-          Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImageEditorPage(imageFile: file)));
-        }
-      } catch (e2) {
-        debugPrint('Error al seleccionar imagen alternativo: $e2');
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al seleccionar imagen')));
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al seleccionar imagen')),
+      );
     }
-  }
-
-  Widget buildAnalysisCard(BuildContext context, {
-    required String title,
-    required IconData icon,
-    required Color color,
-    required String label,
-    bool showButtons = false,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? color.withOpacity(0.15) : color.withOpacity(0.09),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(isDark ? 0.3 : 0.18)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: color, size: 28),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600, 
-                    color: isDark ? Colors.white : Colors.black87
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  label,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              )
-            ],
-          ),
-          if (showButtons) ...[
-            const SizedBox(height: 12),
-            Row(children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _takePhoto(context),
-                  icon: const Icon(Icons.camera_alt_outlined),
-                  label: const Text("Tomar foto"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xff0c1931),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _pickFromGallery(context),
-                  icon: const Icon(Icons.image_outlined),
-                  label: const Text("Desde galería"),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: Color(0xffd0d4da)),
-                    foregroundColor: isDark ? Colors.white : Colors.black87,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-              ),
-            ]),
-          ],
-        ],
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
-        backgroundColor: const Color(0xff0c1931),
+        backgroundColor: _kNavyColor,
         elevation: 0,
-        title: Row(
-          children: const [
+        title: const Row(
+          children: [
             SizedBox(width: 16),
             Icon(Icons.emoji_events, color: Colors.amber),
             SizedBox(width: 8),
             Text(
-              "Hipómetro Áureo",
+              'Hipómetro Áureo',
               style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
             ),
           ],
@@ -325,7 +238,14 @@ class HomePage extends StatelessWidget {
                 color: Colors.amber.shade200,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text("Premium", style: TextStyle(color: Colors.black, fontSize: 12, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Premium',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
         ],
@@ -333,72 +253,54 @@ class HomePage extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, 
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Tipos de análisis", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const Text(
+              'Tipos de análisis',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 10),
-            buildAnalysisCard(
-              context,
-              title: "Análisis Básico",
+            _AnalysisCard(
+              title: 'Análisis Básico',
               icon: Icons.bar_chart,
               color: Colors.green,
-              label: "Gratis",
-              showButtons: true,
+              label: 'Gratis',
+              onCamera: () => _takePhoto(context),
+              onGallery: () => _pickFromGallery(context),
             ),
-            buildAnalysisCard(
-              context,
-              title: "Triángulo de fuerza",
+            _AnalysisCard(
+              title: 'Triángulo de fuerza',
               icon: Icons.analytics_outlined,
               color: Colors.orange,
-              label: "Premium",
-              showButtons: true,
+              label: 'Premium',
+              onCamera: () => _takePhoto(context),
+              onGallery: () => _pickFromGallery(context),
             ),
-            buildAnalysisCard(
-              context,
-              title: "Lineas de aplomo",
+            _AnalysisCard(
+              title: 'Líneas de aplomo',
               icon: Icons.history_toggle_off,
               color: Colors.blue,
-              label: "Premium",
-              showButtons: true,
+              label: 'Premium',
+              onCamera: () => _takePhoto(context),
+              onGallery: () => _pickFromGallery(context),
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.purple.withOpacity(0.2) : const Color.fromARGB(255, 205, 188, 206),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(children: [
-                const Icon(Icons.lightbulb_outline, color: Color.fromARGB(255, 194, 15, 210)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    "Toma la foto de perfil del caballo con buena iluminación y separado de su entorno.",
-                    style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 13),
-                  ),
-                ),
-              ]),
-            ),
-            
+            const _TipBanner(),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const InfoHipometroPage(),
-                    ),
-                  );
-                },
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const InfoHipometroPage()),
+                ),
                 icon: const Icon(Icons.menu_book_rounded, size: 24),
                 label: const Text(
                   'Guía del Hipómetro Áureo',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff0c1931),
+                  backgroundColor: _kNavyColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(
@@ -408,9 +310,156 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16), 
-          ]
+            const SizedBox(height: 16),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+// ─── Widgets reutilizables ────────────────────────────────────────────────────
+
+/// Tarjeta de tipo de análisis con botones de cámara y galería.
+class _AnalysisCard extends StatelessWidget {
+  const _AnalysisCard({
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.onCamera,
+    required this.onGallery,
+  });
+
+  final String       title;
+  final IconData     icon;
+  final Color        color;
+  final String       label;
+  final VoidCallback onCamera;
+  final VoidCallback onGallery;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark
+            ? color.withValues(alpha: 0.15)
+            : color.withValues(alpha: 0.09),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withValues(alpha: isDark ? 0.3 : 0.18),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Encabezado
+          Row(
+            children: [
+              Icon(icon, color: color, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  label,
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+          // Botones de acción
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: onCamera,
+                  icon: const Icon(Icons.camera_alt_outlined),
+                  label: const Text('Tomar foto'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _kNavyColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onGallery,
+                  icon: const Icon(Icons.image_outlined),
+                  label: const Text('Desde galería'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(color: Color(0xffd0d4da)),
+                    foregroundColor: isDark ? Colors.white : Colors.black87,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Banner de consejo de uso.
+class _TipBanner extends StatelessWidget {
+  const _TipBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.purple.withValues(alpha: 0.2)
+            : const Color.fromARGB(255, 205, 188, 206),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.lightbulb_outline,
+            color: Color.fromARGB(255, 194, 15, 210),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Toma la foto de perfil del caballo con buena iluminación y separado de su entorno.',
+              style: TextStyle(
+                color: isDark ? Colors.white : Colors.black87,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
