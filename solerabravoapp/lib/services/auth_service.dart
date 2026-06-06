@@ -72,7 +72,10 @@ class AuthService {
         'uid': userCredential.user!.uid,
         'email': email,
         'fullName': fullName,
-        'isPremium': isPremium,
+        'isPremium': finalIsPremium,
+        // Solo se escribe premiumSource cuando el código otorga premium.
+        // Protege a este usuario de que el webhook o restore() revoquen su acceso.
+        if (finalIsPremium) 'premiumSource': 'codigo',
         'codigoUsado': inviteCode,
         'createdAt': DateTime.now(),
         'updatedAt': DateTime.now(),

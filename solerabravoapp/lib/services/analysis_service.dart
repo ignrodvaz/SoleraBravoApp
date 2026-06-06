@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import '../models/analysis_model.dart';
 
 class AnalysisService {
@@ -64,7 +65,7 @@ class AnalysisService {
 
       return analysis;
     } catch (e) {
-      print('Error guardando análisis: $e');
+      debugPrint('Error guardando análisis: $e');
       rethrow;
     }
   }
@@ -87,7 +88,7 @@ class AnalysisService {
               .map((doc) => AnalysisModel.fromFirestore(doc))
               .toList());
     } catch (e) {
-      print('Error obteniendo análisis: $e');
+      debugPrint('Error obteniendo análisis: $e');
       return Stream.value([]);
     }
   }
@@ -110,7 +111,7 @@ class AnalysisService {
       }
       return null;
     } catch (e) {
-      print('Error obteniendo análisis: $e');
+      debugPrint('Error obteniendo análisis: $e');
       return null;
     }
   }
@@ -139,7 +140,7 @@ class AnalysisService {
           final fileRef = _storage.refFromURL(analysis.imageUrl);
           await fileRef.delete();
         } catch (e) {
-          print('Error eliminando imagen: $e');
+          debugPrint('Error eliminando imagen: $e');
           // Continuar con la eliminación del documento aunque falle la imagen
         }
 
@@ -155,7 +156,7 @@ class AnalysisService {
       }
       return false;
     } catch (e) {
-      print('Error eliminando análisis: $e');
+      debugPrint('Error eliminando análisis: $e');
       rethrow;
     }
   }
@@ -175,12 +176,12 @@ class AnalysisService {
           .doc(analysisId)
           .update({'notes': notes});
     } catch (e) {
-      print('Error actualizando notas: $e');
+      debugPrint('Error actualizando notas: $e');
       rethrow;
     }
   }
 
-  // Contar análisis del usuario
+  // Contar análisis del usuario (total)
   Future<int> getAnalysisCount() async {
     try {
       final user = _auth.currentUser;
@@ -195,7 +196,39 @@ class AnalysisService {
 
       return snapshot.count ?? 0;
     } catch (e) {
-      print('Error contando análisis: $e');
+      debugPrint('Error contando análisis: $e');
+      return 0;
+    }
+  }
+
+  /// Cuenta los análisis del usuario en el mes natural actual.
+  /// Usado para aplicar el límite de 3 análisis/mes a usuarios Free.
+  Future<int> getMonthlyAnalysisCount() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return 0;
+
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month);
+      // Primer día del mes siguiente (límite superior exclusivo)
+      final startOfNextMonth = now.month < 12
+          ? DateTime(now.year, now.month + 1)
+          : DateTime(now.year + 1, 1);
+
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('analyses')
+          .where('createdAt',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+          .where('createdAt',
+              isLessThan: Timestamp.fromDate(startOfNextMonth))
+          .count()
+          .get();
+
+      return snapshot.count ?? 0;
+    } catch (e) {
+      debugPrint('Error contando análisis mensuales: $e');
       return 0;
     }
   }
