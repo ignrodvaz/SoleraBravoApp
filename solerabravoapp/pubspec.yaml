@@ -46,6 +46,7 @@ dependencies:
   google_sign_in: ^6.2.1
   shared_preferences: ^2.2.0
   gal: ^2.3.2
+  url_launcher: ^6.3.1
   syncfusion_flutter_pdfviewer: ^27.2.5
   purchases_flutter: ^8.0.0
 

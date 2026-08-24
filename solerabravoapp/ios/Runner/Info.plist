@@ -47,5 +47,11 @@
 	<true/>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Necesitamos acceso para guardar los análisis en tu galería.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Hipómetro Áureo necesita acceso a la cámara para fotografiar el caballo y realizar el análisis.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Hipómetro Áureo necesita acceso a tu galería para seleccionar fotos del caballo para el análisis.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

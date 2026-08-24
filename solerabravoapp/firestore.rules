@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Usuarios ──────────────────────────────────────────────────────────
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      // Alta inicial del documento (registro por email o Google Sign-In).
+      // Se permite incluir isPremium/premiumSource aquí porque el registro
+      // con código de invitación (auth_service.dart) los fija en la misma
+      // escritura de creación — no hay una segunda escritura posterior.
+      allow create: if request.auth != null && request.auth.uid == uid;
+
+      // Actualizaciones posteriores a la creación: el propio usuario puede
+      // editar su perfil, pero nunca los campos de estado premium — esos
+      // solo los debe escribir el servidor (Cloud Functions con Admin SDK,
+      // que no pasa por estas reglas) a partir del webhook de RevenueCat.
+      allow update: if request.auth != null
+                    && request.auth.uid == uid
+                    && !request.resource.data.diff(resource.data).affectedKeys()
+                        .hasAny([
+                          'isPremium',
+                          'premiumSource',
+                          'premiumSyncedAt',
+                          'premiumUpdatedAt',
+                          'lastRevenuecatEvent',
+                          'lastRevenuecatProduct'
+                        ]);
+
+      allow delete: if false;
+    }
+
+    // ─── Códigos de invitación ─────────────────────────────────────────────
+    match /codigos_invitacion/{codigoId} {
+      allow read: if request.auth != null;
+
+      // No se pueden crear ni borrar códigos desde el cliente.
+      allow create, delete: if false;
+
+      // Única escritura permitida: "quemar" un código libre durante el
+      // registro (auth_service.dart). Solo puede tocar usado/usadoPor/
+      // fechaUso, solo si el código seguía libre, y solo marcándose a sí
+      // mismo como quien lo usó — no se puede tocar 'plan' ni 'codigo'.
+      allow update: if request.auth != null
+                    && resource.data.usado == false
+                    && request.resource.data.usado == true
+                    && request.resource.data.usadoPor == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['usado', 'usadoPor', 'fechaUso']);
+    }
+
+    // ─── Todo lo demás bloqueado por defecto ───────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'providers/auth_provider.dart';
 import 'pages/settings_page.dart';
+import 'pages/paywall_page.dart';
 
 class PerfilPage extends StatelessWidget {
   const PerfilPage({super.key});
@@ -216,7 +219,7 @@ class PerfilPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () => _manageSubscription(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.amber[700],
                             foregroundColor: Colors.white,
@@ -268,7 +271,11 @@ class PerfilPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const PaywallPage()),
+                            );
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue[700],
                             foregroundColor: Colors.white,
@@ -323,12 +330,6 @@ class PerfilPage extends StatelessWidget {
                         },
                       ),
                       ListTile(
-                        leading: Icon(Icons.notifications_none, color: isDark ? Colors.white70 : Colors.black87),
-                        title: Text("Notificaciones", style: GoogleFonts.poppins(fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
-                        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: isDark ? Colors.white54 : Colors.black54),
-                        onTap: () {},
-                      ),
-                      ListTile(
                         leading: const Icon(Icons.logout, color: Colors.red),
                         title: Text(
                           "Cerrar sesión",
@@ -376,6 +377,33 @@ class PerfilPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _manageSubscription(BuildContext context) async {
+    try {
+      final customerInfo = await Purchases.getCustomerInfo();
+      final managementUrl = customerInfo.managementURL;
+      if (managementUrl == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No se encontró ninguna suscripción activa para gestionar.')),
+          );
+        }
+        return;
+      }
+      final launched = await launchUrl(Uri.parse(managementUrl), mode: LaunchMode.externalApplication);
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se pudo abrir la gestión de la suscripción.')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al abrir la gestión de la suscripción: $e')),
+        );
+      }
+    }
   }
 
   void _showChangePasswordDialog(BuildContext context, AuthProvider authProvider) {

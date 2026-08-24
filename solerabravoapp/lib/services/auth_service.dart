@@ -90,7 +90,7 @@ class AuthService {
       debugPrint("Registro completado y código quemado");
 
       return userCredential;
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       rethrow;
     }
   }
@@ -106,7 +106,7 @@ class AuthService {
         password: password,
       );
       return userCredential;
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       rethrow;
     }
   }
@@ -182,7 +182,7 @@ class AuthService {
     try {
       await _firebaseAuth.signOut();
       await _googleSignIn.signOut();
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       rethrow;
     }
   }
