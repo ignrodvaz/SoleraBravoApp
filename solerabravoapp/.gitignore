@@ -49,3 +49,6 @@ app.*.map.json
 /android/app/release.keystore
 *.jks
 *.keystore
+
+# Firebase config — contiene las keys del proyecto, nunca subir a git
+/lib/firebase_options.dart
